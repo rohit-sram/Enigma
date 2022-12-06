@@ -38,6 +38,7 @@
   <li>Ability to play custom song without having to search the song on youtube</li>
   <li>Ability to switch back and forth between songs</li>
 </ul>
+If you want to get added to the music server on discord, drop and email to spriyad2@ncsu.edu
 </div>
   
 <h1> Features added by Group 17</h1>
