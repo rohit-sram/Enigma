@@ -1,5 +1,5 @@
 """
-dThis file is the main entry point of the bot
+This file is the main entry point of the bot
 """
 
 from multiprocessing.util import debug
@@ -16,10 +16,12 @@ from src.songs_cog import Songs
 load_dotenv('.env')
 TOKEN = os.getenv('DISCORD_TOKEN')
 # This can be obtained using ctx.message.author.voice.channel
-VOICE_CHANNEL_ID = 1017135653789646851
+VOICE_CHANNEL_ID = 1300287459451736064
+# 1017135653789646851
 intents = discord.Intents.all()
 intents.members = True
-client = commands.Bot(command_prefix='/', intents=intents)
+# client = commands.Bot(command_prefix='/', intents=intents)
+client = commands.Bot(command_prefix=']', intents=intents)
 """
 Function that gets executed once the bot is initialized
 """
@@ -48,6 +50,10 @@ async def on_message(message):
         user_message = str(message.content)
         await client.process_commands(message)
 
+
+@client.event
+async def on_command_error(i, err):
+    print(f'An error has occured: {err}')
 
 """
 Start the bot
