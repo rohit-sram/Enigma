@@ -6,7 +6,7 @@ import discord
 from src.get_all import *
 from dotenv import load_dotenv
 from discord.ext import commands
-from src.utils import searchSong, random_25
+from src.utils import searchSong, random_25, has_role_dj
 from src.songs_queue import Songs_Queue
 import youtube_dl
 
@@ -34,6 +34,7 @@ class Songs(commands.Cog):
     """
 
     @commands.command(name='resume', help='Resumes the song')
+    @has_role_dj()
     async def resume(self, ctx):
         voice_client = ctx.message.guild.voice_client
         if voice_client.is_paused():
@@ -48,6 +49,7 @@ class Songs(commands.Cog):
     """
 
     @commands.command(name='play_custom', help='To play custom song')
+    @has_role_dj()
     async def play_custom(self, ctx):
         user_message = str(ctx.message.content)
         song_name = user_message.split(' ', 1)[1]
@@ -58,6 +60,7 @@ class Songs(commands.Cog):
     """
 
     @commands.command(name='stop', help='Stops the song')
+    @has_role_dj()
     async def stop(self, ctx):
         voice_client = ctx.message.guild.voice_client
         if voice_client.is_playing():
@@ -112,6 +115,7 @@ class Songs(commands.Cog):
     """
 
     @commands.command(name='next_song', help='To play next song in queue')
+    @has_role_dj()
     async def next_song(self, ctx):
         empty_queue = await self.handle_empty_queue(ctx)
         if not empty_queue:
@@ -122,6 +126,7 @@ class Songs(commands.Cog):
     """
 
     @commands.command(name='prev_song', help='To play prev song in queue')
+    @has_role_dj()
     async def play(self, ctx):
         empty_queue = await self.handle_empty_queue(ctx)
         if not empty_queue:
@@ -132,6 +137,7 @@ class Songs(commands.Cog):
     """
 
     @commands.command(name='pause', help='This command pauses the song')
+    @has_role_dj()
     async def pause(self, ctx):
         voice_client = ctx.message.guild.voice_client
         if voice_client.is_playing():
@@ -144,6 +150,7 @@ class Songs(commands.Cog):
     """
 
     @commands.command(name='poll', help='Poll for recommendation')
+    # @has_role_dj()
     async def poll(self, ctx):
         reactions = ['👍', '👎']
         selected_songs = []
@@ -181,6 +188,7 @@ class Songs(commands.Cog):
 
     @commands.command(name='queue',
                       help='Show active queue of recommendations')
+    @has_role_dj()
     async def queue(self, ctx):
         empty_queue = await self.handle_empty_queue(ctx)
         if not empty_queue:
@@ -197,6 +205,7 @@ class Songs(commands.Cog):
     """
 
     @commands.command(name='shuffle', help='To shuffle songs in queue')
+    @has_role_dj()
     async def shuffle(self, ctx):
         empty_queue = await self.handle_empty_queue(ctx)
         if not empty_queue:
@@ -208,6 +217,7 @@ class Songs(commands.Cog):
     """
 
     @commands.command(name='add_song', help='To add custom song to the queue')
+    @has_role_dj()
     async def add_song(self, ctx):
         user_message = str(ctx.message.content)
         song_name = user_message.split(' ', 1)[1]

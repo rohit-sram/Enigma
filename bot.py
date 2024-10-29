@@ -10,7 +10,7 @@ import re
 from dotenv import load_dotenv
 from discord.ext import commands
 from discord.ext.commands import CheckFailure
-from src.utils import searchSong
+from src.utils import searchSong, has_role_dj
 from src.songs_queue import Songs_Queue
 from src.songs_cog import Songs
 
@@ -26,18 +26,6 @@ intents.message_content = True
 intents.guilds = True
 # client = commands.Bot(command_prefix='/', intents=intents)
 client = commands.Bot(command_prefix=']', intents=intents)
-
-"""
-Function to check if user had 'DJ' role
-"""
-
-def has_role_dj():
-    async def predicate(ctx):
-        dj_role = discord.utils.get(ctx.guild.roles, name='DJ')
-        if dj_role in ctx.author.roles:
-            return True
-        raise CheckFailure("You do not have permission to use the bot")
-    return commands.check(predicate)
 
 """
 Function that gets executed once the bot is initialized
