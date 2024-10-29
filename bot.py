@@ -7,19 +7,24 @@ import discord
 import os
 from src.get_all import *
 import re
+import asyncio
 from dotenv import load_dotenv
 from discord.ext import commands
 from discord.ext.commands import CheckFailure
-from src.utils import searchSong, has_role_dj
+from src.utils import searchSong, has_role_dj, update_vc_status, check_vc_status
 from src.songs_queue import Songs_Queue
 from src.songs_cog import Songs
 
 load_dotenv('.env')
 TOKEN = os.getenv('DISCORD_TOKEN')
 # This can be obtained using ctx.message.author.voice.channel
-VOICE_CHANNEL_ID = 1300499798545141873 # Hotel Quink Server
+
+VOICE_CHANNEL_ID = 1300855852374163497 # Group 86 test VC
+# 1299270426794524708 # Enigma test general
+# 1300499798545141873 # Hotel Quink Server
 # 1300287459451736064 - SQUAD Server
 # 1017135653789646851
+
 intents = discord.Intents.all()
 intents.members = True
 intents.message_content = True
@@ -27,10 +32,10 @@ intents.guilds = True
 # client = commands.Bot(command_prefix='/', intents=intents)
 client = commands.Bot(command_prefix=']', intents=intents)
 
+
 """
 Function that gets executed once the bot is initialized
 """
-
 @client.event
 async def on_ready():
     voice_channel = client.get_channel(VOICE_CHANNEL_ID)
@@ -39,11 +44,31 @@ async def on_ready():
     await client.load_extension("src.songs_cog")
     print("Enigma is online!")
 
-"""
-Function restricting DJ role to use 'play'
-"""
 
-@client.command(name='play')
+"""
+Function to reconnect bot if it disconnects
+"""
+@client.event
+async def on_voice_state_update(member, before, after):
+    # if member == client.user and before.channel is not None and after.channel is None:
+    #     print(f"{str(member.name)} disconnected from {before.channel.name}")
+    #     # voice_channel = client.get_channel(VOICE_CHANNEL_ID)
+    #     voice_channel = discord.utils.get(client.voice_clients, guild=before.channel.guild)
+
+    #     # Ensure the bot only attempts to connect if it is not already connected
+    #     if voice_channel and not voice_channel.is_connected():
+    #         await voice_channel.connect(reconnect=True, timeout=10.0)
+    
+    await update_vc_status(client, member, before, after)
+    
+
+client.add_check(check_vc_status())
+
+
+"""
+Function for playing a song
+"""
+@client.command(name='play', help='To play a song')
 @has_role_dj()
 async def play(ctx, *, song: str):
     await ctx.send(f"Playing {song} requested by {ctx.author.display_name}")
@@ -51,42 +76,21 @@ async def play(ctx, *, song: str):
 """
 Function that is executed once any message is received by the bot
 """
-
 @client.event
 async def on_message(message):
     if message.author == client.user:
         return
     options = set()
 
-    # if message.channel.name == 'general':
-    #     user_message = str(message.content)
-    #     await client.process_commands(message)
-    
-    if message.channel.name == 't-time':
+    # available_channels = ['general', 't-time', 'testing-space']
+    if message.channel.name == 'testing-space':
         user_message = str(message.content)
         await client.process_commands(message)
-
-
-"""
-Function to reconnect bot if it disconnects
-"""
-
-@client.event
-async def on_voice_state_update(member, before, after):
-    if member == client.user and before.channel is not None and after.channel is None:
-        print(f"{member} disconnected from the {before.channel.name} channel")
-        # voice_channel = client.get_channel(VOICE_CHANNEL_ID)
-        voice_channel = discord.utils.get(client.voice_clients, guild=before.channel.guild)
-
-        # Ensure the bot only attempts to connect if it is not already connected
-        if voice_channel and not voice_channel.is_connected():
-            await voice_channel.connect(reconnect=True, timeout=10.0)
-
+           
 
 """
 Error checking function that returns any error received by the bot
 """
-
 @client.event
 async def on_command_error(ctx, error):
     if isinstance(error, CheckFailure):
@@ -94,6 +98,12 @@ async def on_command_error(ctx, error):
     else:
         print(f"An error has occurred: {error}")
 
+
+@client.command(name='reconnect', help='To connect the bot to voice channel')
+@has_role_dj()
+async def reconnect(ctx):
+    await ctx.send("Reconnecting enigma to VC ...")
+    await on_ready()
 
 """
 Start the bot
