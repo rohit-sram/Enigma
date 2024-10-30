@@ -37,7 +37,7 @@ from src.get_all import filtered_songs
 This function seaches the song on youtube and returns the URL
 &#34;&#34;&#34;
 def searchSong(name_song):
-    videosSearch = VideosSearch(name_song, limit=1)
+    videosSearch = YoutubeSearch(name_song, max_results=5).to_dict()
     result = videosSearch.result()
     link = result[&#39;result&#39;][0][&#39;link&#39;]
     return link
@@ -93,7 +93,7 @@ def random_25():
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def searchSong(name_song):
-    videosSearch = VideosSearch(name_song, limit=1)
+    videosSearch = Youtube(name_song, max_results=5)
     result = videosSearch.result()
     link = result[&#39;result&#39;][0][&#39;link&#39;]
     return link</code></pre>

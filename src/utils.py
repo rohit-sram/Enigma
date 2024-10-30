@@ -3,6 +3,7 @@ This file is responsible for all the helper functions that are used
 """
 from youtubesearchpython import VideosSearch
 from src.get_all import filtered_songs
+from youtube_search import YoutubeSearch
 
 import discord
 from discord.ext import commands
@@ -13,8 +14,14 @@ vc_connected = False # global flag variable for vc connection status
 """
 This function seaches the song on youtube and returns the URL
 """
+# def searchSong(name_song):
+#     videosSearch = VideosSearch(name_song, limit=1)
+#     result = videosSearch.result()
+#     link = result['result'][0]['link']
+#     return link
+
 def searchSong(name_song):
-    videosSearch = VideosSearch(name_song, limit=1)
+    videosSearch = YoutubeSearch(name_song, max_results=5).to_dict()
     result = videosSearch.result()
     link = result['result'][0]['link']
     return link

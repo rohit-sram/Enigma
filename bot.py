@@ -31,7 +31,7 @@ intents.message_content = True
 intents.guilds = True
 # client = commands.Bot(command_prefix='/', intents=intents)
 client = commands.Bot(command_prefix=']', intents=intents)
-
+authorized_channels = []
 
 """
 Function that gets executed once the bot is initialized
@@ -66,6 +66,36 @@ client.add_check(check_vc_status())
 
 
 """
+Function to authorize channels 
+"""
+channels_help = """
+Add allowed channels for the bot 
+- example : ]channels <channel1>, <channel2>, ...
+"""
+# @client.command(name='channels', help='Add allowed channels for the bot')
+@client.command(name='channels', help=channels_help)
+@has_role_dj()
+async def authorize_channel(ctx):
+    global authorized_channels
+    user_message = str(ctx.message.content)
+    extract = re.search(r"\]channels (.+)", user_message)
+    if extract:
+        channels_extract = [channel.strip() for channel in extract.group(1).split(",")]
+        new_channels = []
+        for tc in channels_extract:
+            if tc not in authorized_channels:
+                authorized_channels.append(tc)
+                new_channels.append(tc)     
+        if new_channels:
+            new_channels_str = ', '.join(new_channels)
+            await ctx.send(f"Added authorized channels: {new_channels_str}")
+        else:
+            await ctx.send("No new channels added. All channels have been authorized already.")
+    else:
+        await ctx.send("No channels found to authorize. Use format: `]channels <channel1>, <channel2>, ...`")
+
+
+"""
 Function for playing a song
 """
 @client.command(name='play', help='To play a song')
@@ -83,6 +113,11 @@ async def on_message(message):
     options = set()
 
     # available_channels = ['general', 't-time', 'testing-space']
+    if message.channel.name in authorized_channels:
+    # if message.channel.name == 'testing-space':
+        user_message = str(message.content)
+        await client.process_commands(message)
+        
     if message.channel.name == 'testing-space':
         user_message = str(message.content)
         await client.process_commands(message)
