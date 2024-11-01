@@ -15,10 +15,6 @@ import urllib.parse, urllib.request, re
 from src.get_all import *
 from src.utils import searchSong, random_25, has_role_dj, check_vc_status
 from src.songs_queue import Songs_Queue
-<<<<<<< HEAD:src/songs_cog.py
-=======
-# from bot import on_ready
->>>>>>> 8a10413 (Changed file structure and version to fix compatibility with Linux and Windows):Cogs/songs_cog.py
 
 
 # client = commands.Bot(command_prefix=']', intents=intents)

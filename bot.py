@@ -9,16 +9,9 @@ import os
 from dotenv import load_dotenv
 from discord.ext import commands
 from discord.ext.commands import CheckFailure
-<<<<<<< HEAD
-from src.utils import has_role_dj, update_vc_status, check_vc_status
-import re
-import src.songs_cog
-# from src.songs_cog import Songs
-=======
 from src.utils import searchSong, has_role_dj, update_vc_status, check_vc_status
 from src.songs_queue import Songs_Queue
 from Cogs.songs_cog import Songs
->>>>>>> 8a10413 (Changed file structure and version to fix compatibility with Linux and Windows)
 
 
 logging.basicConfig(level=logging.INFO)
@@ -47,12 +40,8 @@ async def on_ready():
     voice_channel = client.get_channel(VOICE_CHANNEL_ID)
     if client.user not in voice_channel.members:
         await voice_channel.connect()
-<<<<<<< HEAD
-    extensions = client.load_extension("src.songs_cog")
+    extensions = client.load_extension("Cogs.songs_cog")
     await extensions
-=======
-    await client.load_extension("Cogs.songs_cog")
->>>>>>> 8a10413 (Changed file structure and version to fix compatibility with Linux and Windows)
     print("Enigma is online!")
 
     
