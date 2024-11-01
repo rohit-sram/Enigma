@@ -1,6 +1,6 @@
 import pytest
 import unittest
-from src.songs_cog import *
+from Cogs.songs_cog import *
 import warnings
 import sys
 
