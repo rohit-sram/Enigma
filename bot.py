@@ -6,6 +6,7 @@ from multiprocessing.util import debug
 import discord
 import logging
 import os
+import re
 from dotenv import load_dotenv
 from discord.ext import commands
 from discord.ext.commands import CheckFailure

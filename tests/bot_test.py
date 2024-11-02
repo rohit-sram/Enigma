@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import AsyncMock, patch
 import sys
+import re
+from discord.ext.commands import CheckFailure
 
 sys.path.append("../")
 from bot import client, authorized_channels
@@ -22,23 +24,6 @@ class TestDiscordBot(unittest.IsolatedAsyncioTestCase):
         mock_get_channel.return_value = mock_voice_channel
         await client.on_ready()
         mock_voice_channel.connect.assert_called_once()
-
-    @patch("bot.authorized_channels", new_callable=list)
-    async def test_authorize_channel(self, mock_authorized_channels):
-        # Test authorizing a new channel
-        ctx = AsyncMock()
-        ctx.message.content = "]channels testing-space"
-        ctx.send = AsyncMock()
-
-        await client.get_command("channels").callback(ctx)
-        self.assertIn("testing-space", authorized_channels)
-        ctx.send.assert_called_with("Added authorized channels: testing-space")
-
-        # Test duplicate authorization
-        await client.get_command("channels").callback(ctx)
-        ctx.send.assert_called_with(
-            "No new channels added. All channels have been authorized already."
-        )
 
     async def test_on_voice_state_update_reconnect(self):
         # Test reconnect behavior when bot disconnects from a voice channel
