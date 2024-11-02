@@ -1,5 +1,6 @@
 import json
 import os
+from random import shuffle
 
 class Songs_Queue:
     def __init__(self, song_names=None):

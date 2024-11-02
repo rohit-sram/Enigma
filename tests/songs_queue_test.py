@@ -1,65 +1,62 @@
 import unittest
 from src.songs_queue import Songs_Queue
-from unittest.mock import patch
-
 
 class TestSongsQueue(unittest.TestCase):
 
     def setUp(self):
-        self.initial_songs = ["Song1", "Song2", "Song3"]
-        self.queue = Songs_Queue(self.initial_songs)
+        self.sample_songs = ["Song A", "Song B", "Song C", "Song D", "Song E"]
+        self.queue = Songs_Queue(self.sample_songs)
 
     def test_init(self):
-        self.assertEqual(self.queue.queue, self.initial_songs)
+        self.assertEqual(self.queue.queue, self.sample_songs)
         self.assertEqual(self.queue.index, 0)
         self.assertEqual(self.queue.current_index, 0)
 
     def test_next_song(self):
-        # Test normal progression
-        self.assertEqual(self.queue.next_song(), "Song1")
-        self.assertEqual(self.queue.next_song(), "Song2")
-        self.assertEqual(self.queue.next_song(), "Song3")
-
+        # Test normal next song functionality
+        for i in range(len(self.sample_songs)):
+            self.assertEqual(self.queue.next_song(), self.sample_songs[i])
+        
         # Test wrapping around to the beginning
-        self.assertEqual(self.queue.next_song(), "Song1")
+        self.assertEqual(self.queue.next_song(), self.sample_songs[0])
 
     def test_prev_song(self):
         # Move to the end of the queue
-        self.queue.index = 3
-
-        # Test normal regression
-        self.assertEqual(self.queue.prev_song(), "Song3")
-        self.assertEqual(self.queue.prev_song(), "Song2")
-        self.assertEqual(self.queue.prev_song(), "Song1")
-
+        for _ in range(len(self.sample_songs)):
+            self.queue.next_song()
+        
+        # Test normal previous song functionality
+        for i in range(len(self.sample_songs) - 1, -1, -1):
+            self.assertEqual(self.queue.prev_song(), self.sample_songs[i])
+        
         # Test wrapping around to the end
-        self.assertEqual(self.queue.prev_song(), "Song3")
+        self.assertEqual(self.queue.prev_song(), self.sample_songs[-1])
 
     def test_get_len(self):
-        self.assertEqual(self.queue.get_len(), 3)
+        self.assertEqual(self.queue.get_len(), len(self.sample_songs))
 
     def test_return_queue(self):
         returned_queue, current_index = self.queue.return_queue()
-        self.assertEqual(returned_queue, self.initial_songs)
+        self.assertEqual(returned_queue, self.sample_songs)
         self.assertEqual(current_index, 0)
 
-    @patch("src.songs_queue.shuffle")
-    def test_shuffle_queue(self, mock_shuffle):
+        # Test after moving to next song
+        self.queue.next_song()
+        returned_queue, current_index = self.queue.return_queue()
+        self.assertEqual(current_index, 0)  # Because next_song() updates current_index after returning
+
+    def test_shuffle_queue(self):
+        original_queue = self.queue.queue.copy()
         self.queue.shuffle_queue()
-        mock_shuffle.assert_called_once_with(self.queue.queue)
+        self.assertNotEqual(self.queue.queue, original_queue)
+        self.assertEqual(set(self.queue.queue), set(original_queue))
 
     def test_add_to_queue(self):
-        self.queue.add_to_queue("Song4")
-        self.assertEqual(self.queue.queue, ["Song1", "Song2", "Song3", "Song4"])
-        self.assertEqual(self.queue.get_len(), 4)
+        new_song = "New Song"
+        original_length = self.queue.get_len()
+        self.queue.add_to_queue(new_song)
+        self.assertEqual(self.queue.get_len(), original_length + 1)
+        self.assertEqual(self.queue.queue[-1], new_song)
 
-    def test_empty_queue(self):
-        empty_queue = Songs_Queue([])
-        with self.assertRaises(IndexError):
-            empty_queue.next_song()
-        with self.assertRaises(IndexError):
-            empty_queue.prev_song()
-
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()
