@@ -1,60 +1,69 @@
-"""
-This file is responsible for maintaining the song queue
-"""
-from random import shuffle
+import json
+import os
 
+class Songs_Queue:
+    def __init__(self, song_names=None):
+        self.file_path = "songs_queue.json"
+        if song_names is not None:
+            self.queue = song_names
+            self.index = 0
+            self.current_index = 0
+            self.save_to_json()
+        else:
+            self.load_from_json()
 
-class Songs_Queue():
-    """
-    This class is responsible for maintaining the song queue
-    """
+    def save_to_json(self):
+        data = {
+            "queue": self.queue,
+            "index": self.index,
+            "current_index": self.current_index
+        }
+        with open(self.file_path, 'w') as f:
+            json.dump(data, f)
 
-    def __init__(self, song_names):
-        self.queue = song_names
-        self.index = 0
-        self.current_index = 0
-
-    """
-    This function returns the next song in the queue
-    """
+    def load_from_json(self):
+        if os.path.exists(self.file_path):
+            with open(self.file_path, 'r') as f:
+                data = json.load(f)
+            self.queue = data.get("queue", [])
+            self.index = data.get("index", 0)
+            self.current_index = data.get("current_index", 0)
+        else:
+            self.queue = []
+            self.index = 0
+            self.current_index = 0
 
     def next_song(self):
-        print(self.queue)
-        if (self.index == len(self.queue)):
+        if not self.queue:
+            return None
+        if self.index >= len(self.queue):
             self.index = 0
-        val = self.index
-        self.current_index = val
+        song = self.queue[self.index]
+        self.current_index = self.index
         self.index += 1
-        return self.queue[val]
-
-    """
-    This function returns the previous song in the queue
-    """
+        self.save_to_json()
+        return song
 
     def prev_song(self):
+        if not self.queue:
+            return None
         self.index -= 1
-        if (self.index <= 0):
+        if self.index < 0:
             self.index = len(self.queue) - 1
-        val = self.index
-        self.current_index = val
-        return self.queue[val]
-
-    """
-    This function returns the length of the song queue
-    """
+        self.current_index = self.index
+        self.save_to_json()
+        return self.queue[self.index]
 
     def get_len(self):
         return len(self.queue)
-
-    """
-    This function returns song queue and the current index of the song that is playing
-    """
 
     def return_queue(self):
         return (self.queue, self.current_index)
 
     def shuffle_queue(self):
         shuffle(self.queue)
+        self.save_to_json()
 
     def add_to_queue(self, song_name):
         self.queue.append(song_name)
+        self.save_to_json()
