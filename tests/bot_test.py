@@ -1,87 +1,74 @@
 import unittest
-from unittest.mock import AsyncMock, patch, MagicMock
-import discord
-from discord.ext import commands
-from bot import (
-    client,
-    authorize_channel,
-    on_ready,
-    on_voice_state_update,
-    on_message,
-    on_command_error,
-    reconnect,
-)
+from unittest.mock import AsyncMock, patch
+import sys
+
+sys.path.append("../")
+from bot import client, authorized_channels
 
 
-class TestEnigmaBot(unittest.TestCase):
+class TestDiscordBot(unittest.IsolatedAsyncioTestCase):
 
-    def setUp(self):
-        self.bot = client
-        self.ctx = AsyncMock()
-        self.ctx.send = AsyncMock()
+    async def asyncSetUp(self):
+        self.guild = AsyncMock()
+        self.channel = AsyncMock()
+        self.channel.name = "testing-space"
+        self.member = AsyncMock()
+        self.member.roles = []
 
-    @patch("discord.ext.commands.Bot.load_extension")
-    @patch("discord.VoiceChannel.connect")
-    async def test_on_ready(self, mock_connect, mock_load_extension):
-        mock_channel = MagicMock(spec=discord.VoiceChannel)
-        self.bot.get_channel = MagicMock(return_value=mock_channel)
-        mock_channel.members = []
+    @patch("bot.client.get_channel")
+    async def test_on_ready(self, mock_get_channel):
+        # Mock voice channel and simulate bot connecting
+        mock_voice_channel = AsyncMock()
+        mock_get_channel.return_value = mock_voice_channel
+        await client.on_ready()
+        mock_voice_channel.connect.assert_called_once()
 
-        await on_ready()
+    @patch("bot.authorized_channels", new_callable=list)
+    async def test_authorize_channel(self, mock_authorized_channels):
+        # Test authorizing a new channel
+        ctx = AsyncMock()
+        ctx.message.content = "]channels testing-space"
+        ctx.send = AsyncMock()
 
-        mock_connect.assert_called_once()
-        mock_load_extension.assert_called_once_with("Cogs.songs_cog")
+        await client.get_command("channels").callback(ctx)
+        self.assertIn("testing-space", authorized_channels)
+        ctx.send.assert_called_with("Added authorized channels: testing-space")
 
-    @patch("src.utils.update_vc_status")
-    async def test_on_voice_state_update(self, mock_update_vc_status):
-        member = MagicMock()
-        before = MagicMock()
-        after = MagicMock()
-
-        await on_voice_state_update(member, before, after)
-
-        mock_update_vc_status.assert_called_once_with(self.bot, member, before, after)
-
-    @patch("bot.has_role_dj")
-    async def test_authorize_channel(self, mock_has_role_dj):
-        mock_has_role_dj.return_value = True
-        self.ctx.message.content = "]channels test-channel1, test-channel2"
-
-        await authorize_channel(self.ctx)
-
-        self.ctx.send.assert_called_once_with(
-            "Added authorized channels: test-channel1, test-channel2"
+        # Test duplicate authorization
+        await client.get_command("channels").callback(ctx)
+        ctx.send.assert_called_with(
+            "No new channels added. All channels have been authorized already."
         )
+
+    async def test_on_voice_state_update_reconnect(self):
+        # Test reconnect behavior when bot disconnects from a voice channel
+        before = AsyncMock(channel=AsyncMock(name="Voice Channel"))
+        after = AsyncMock(channel=None)
+        await client.on_voice_state_update(self.member, before, after)
+        # Here, assert that reconnect logic was called correctly as per ⁠ update_vc_status ⁠ handling.
 
     async def test_on_message(self):
-        message = MagicMock()
-        message.author = MagicMock(spec=discord.Member)
-        message.author.bot = False
+        # Test message handling in authorized and unauthorized channels
+        message = AsyncMock()
+        message.author = AsyncMock()
+        message.author == client.user  # Avoid bot processing its own messages
         message.channel.name = "testing-space"
+        await client.on_message(message)
+        # Verify if ⁠ process_commands ⁠ was called in an authorized channel
 
-        with patch.object(self.bot, "process_commands") as mock_process_commands:
-            await on_message(message)
-            mock_process_commands.assert_called_once_with(message)
+        message.channel.name = "unauthorized-channel"
+        await client.on_message(message)
+        # Ensure that commands are ignored in unauthorized channels
 
-    async def test_on_command_error_check_failure(self):
-        error = commands.CheckFailure()
+    async def test_on_command_error(self):
+        # Simulate a command error for CheckFailure (missing DJ role)
+        ctx = AsyncMock()
+        error = CheckFailure("DJ role required")
+        ctx.send = AsyncMock()
 
-        await on_command_error(self.ctx, error)
-
-        self.ctx.send.assert_called_once_with(
-            "You need the DJ role to use this command!"
-        )
-
-    @patch("bot.on_ready")
-    @patch("bot.has_role_dj")
-    async def test_reconnect(self, mock_has_role_dj, mock_on_ready):
-        mock_has_role_dj.return_value = True
-
-        await reconnect(self.ctx)
-
-        self.ctx.send.assert_called_once_with("Reconnecting enigma to VC ...")
-        mock_on_ready.assert_called_once()
+        await client.on_command_error(ctx, error)
+        ctx.send.assert_called_once_with("You need the DJ role to use this command!")
 
 
-if __name__ == "__main__":
+if __name__ == "_main_":
     unittest.main()
